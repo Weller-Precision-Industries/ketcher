@@ -76,7 +76,18 @@ jobs:
           fi
       - name: Robotutor integration regressions
         if: steps.qualification.outputs.qualified == 'true'
-        run: npm run test:robotutor
+        run: |
+          npm --prefix robotutor ci
+          npx --prefix robotutor playwright install --with-deps chromium
+          npm --prefix robotutor test
+      - name: Keep the contract report
+        if: always() && steps.qualification.outputs.qualified == 'true'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: robotutor-contract-${{ github.run_id }}
+          path: robotutor/test-results/
+          if-no-files-found: ignore
+          retention-days: 14
       - name: Package the matching fork workspaces and retain provenance
         if: steps.qualification.outputs.qualified == 'true'
         env:
