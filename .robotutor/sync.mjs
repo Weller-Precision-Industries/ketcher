@@ -74,6 +74,7 @@ export function main() {
     if (workflows.length < 100) break;
   }
   const result = prepareMerge(process.cwd());
+  let proposalError = '';
   if (result.changed && result.workflowChanges.length && process.env.ROBOTUTOR_SYNC_TOKEN_PRESENT !== 'true') {
     throw new Error(`Upstream changed ${result.workflowChanges.join(', ')}. GITHUB_TOKEN cannot push workflow ` +
       'files: add the ROBOTUTOR_SYNC_TOKEN secret (fine-grained token for this repository with contents, ' +
@@ -91,10 +92,17 @@ export function main() {
           'Inherited workflows are disabled on every sync, but review them before merging.'
         : '');
     const data = { title: 'build: integrate upstream Ketcher', body };
-    const pr = pulls[0]
-      ? api(`repos/${REPOSITORY}/pulls/${pulls[0].number}`, 'PATCH', data)
-      : api(`repos/${REPOSITORY}/pulls`, 'POST', { ...data, base: BASE, head: HEAD });
-    console.log(`Update PR: ${pr.html_url}`);
+    try {
+      const pr = pulls[0]
+        ? api(`repos/${REPOSITORY}/pulls/${pulls[0].number}`, 'PATCH', data)
+        : api(`repos/${REPOSITORY}/pulls`, 'POST', { ...data, base: BASE, head: HEAD });
+      console.log(`Update PR: ${pr.html_url}`);
+    } catch (error) {
+      // The branch is pushed; do not hide that nobody was asked to review it.
+      proposalError = `Could not open the review PR (${String(error.stderr || error.message).trim()}). ` +
+        `Open it from https://github.com/${REPOSITORY}/compare/${BASE}...${HEAD}; allow Actions to create PRs ` +
+        'in the organization or add ROBOTUTOR_SYNC_TOKEN.';
+    }
   }
   // GITHUB_TOKEN push/PR events need not start unattended CI. Dispatch explicitly.
   api(`repos/${REPOSITORY}/actions/workflows/robotutor-build.yml/dispatches`, 'POST', {
@@ -102,8 +110,9 @@ export function main() {
   });
   const summary = `Checked upstream ${result.upstreamSha}; candidate ${result.sha}; changes=${result.changed}.\n` +
     'Build requested, NOT yet passed. No automatic merge/publication.\n';
-  if (process.env.GITHUB_STEP_SUMMARY) appendFileSync(process.env.GITHUB_STEP_SUMMARY, summary);
+  if (process.env.GITHUB_STEP_SUMMARY) appendFileSync(process.env.GITHUB_STEP_SUMMARY, summary + proposalError);
   console.log(summary);
+  if (proposalError) throw new Error(proposalError);
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
