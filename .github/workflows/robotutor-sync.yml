@@ -1,0 +1,31 @@
+name: Robotutor upstream sync
+on:
+  schedule:
+    - cron: '17 11 * * 1'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: robotutor-upstream-sync
+  cancel-in-progress: false
+jobs:
+  sync:
+    if: github.repository == 'Weller-Precision-Industries/ketcher'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+      pull-requests: write
+      actions: write
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: robotutor
+          fetch-depth: 0
+          # A fine-grained token is only needed when upstream changes workflow files.
+          token: ${{ secrets.ROBOTUTOR_SYNC_TOKEN || github.token }}
+      - name: Merge upstream without executing its code; propose PR and dispatch build
+        env:
+          GH_TOKEN: ${{ secrets.ROBOTUTOR_SYNC_TOKEN || github.token }}
+          ROBOTUTOR_SYNC_TOKEN_PRESENT: ${{ secrets.ROBOTUTOR_SYNC_TOKEN != '' }}
+        run: node .robotutor/sync.mjs
