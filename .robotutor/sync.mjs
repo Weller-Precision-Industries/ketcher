@@ -74,7 +74,13 @@ export function main() {
     if (workflows.length < 100) break;
   }
   const result = prepareMerge(process.cwd());
-  let proposalError = '';
+  // Every failure is reported: a later one must never hide an earlier one.
+  const failures = [];
+  const report = (message) => {
+    failures.push(message);
+    console.error(message);
+    if (process.env.GITHUB_STEP_SUMMARY) appendFileSync(process.env.GITHUB_STEP_SUMMARY, `${message}\n`);
+  };
   if (result.changed && result.workflowChanges.length && process.env.ROBOTUTOR_SYNC_TOKEN_PRESENT !== 'true') {
     throw new Error(`Upstream changed ${result.workflowChanges.join(', ')}. GITHUB_TOKEN cannot push workflow ` +
       'files: add the ROBOTUTOR_SYNC_TOKEN secret (fine-grained token for this repository with contents, ' +
@@ -99,20 +105,27 @@ export function main() {
       console.log(`Update PR: ${pr.html_url}`);
     } catch (error) {
       // The branch is pushed; do not hide that nobody was asked to review it.
-      proposalError = `Could not open the review PR (${String(error.stderr || error.message).trim()}). ` +
+      report(`Could not open the review PR (${String(error.stderr || error.message).trim()}). ` +
         `Open it from https://github.com/${REPOSITORY}/compare/${BASE}...${HEAD}; allow Actions to create PRs ` +
-        'in the organization or add ROBOTUTOR_SYNC_TOKEN.';
+        'in the organization or add ROBOTUTOR_SYNC_TOKEN.');
     }
   }
   // GITHUB_TOKEN push/PR events need not start unattended CI. Dispatch explicitly.
-  api(`repos/${REPOSITORY}/actions/workflows/robotutor-build.yml/dispatches`, 'POST', {
-    ref: BASE, inputs: { candidate_sha: result.sha, upstream_sha: result.upstreamSha },
-  });
+  let dispatched = false;
+  try {
+    api(`repos/${REPOSITORY}/actions/workflows/robotutor-build.yml/dispatches`, 'POST', {
+      ref: BASE, inputs: { candidate_sha: result.sha, upstream_sha: result.upstreamSha },
+    });
+    dispatched = true;
+  } catch (error) {
+    report(`Could not request the build (${String(error.stderr || error.message).trim()}); ` +
+      'run robotutor-build.yml manually for this candidate.');
+  }
   const summary = `Checked upstream ${result.upstreamSha}; candidate ${result.sha}; changes=${result.changed}.\n` +
-    'Build requested, NOT yet passed. No automatic merge/publication.\n';
-  if (process.env.GITHUB_STEP_SUMMARY) appendFileSync(process.env.GITHUB_STEP_SUMMARY, summary + proposalError);
+    (dispatched ? 'Build requested, NOT yet passed.' : 'Build NOT requested.') + ' No automatic merge/publication.\n';
+  if (process.env.GITHUB_STEP_SUMMARY) appendFileSync(process.env.GITHUB_STEP_SUMMARY, summary);
   console.log(summary);
-  if (proposalError) throw new Error(proposalError);
+  if (failures.length) throw new Error(failures.join('\n'));
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
