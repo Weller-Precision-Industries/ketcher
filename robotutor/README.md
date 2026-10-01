@@ -8,7 +8,7 @@ in the upstream-sync PR, before OLMS ever pins the new build.
 ```sh
 nvm use                     # Node >= 24.14.1, as upstream requires
 npm ci && npm run build:packages
-npm run test:robotutor      # = npm --prefix robotutor ci && npm --prefix robotutor test
+npm run test:robotutor      # robotutor ci, Playwright Chromium install, then the suite
 ```
 
 `robotutor/` is deliberately not an npm workspace: it has its own lockfile, so

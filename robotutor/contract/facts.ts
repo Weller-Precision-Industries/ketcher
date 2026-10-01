@@ -38,6 +38,85 @@ const atomFact = (atom: KetAtom) =>
     `s${atom.stereoLabel ?? '-'}`,
   ].join(' ');
 
+/** cyrb53: a small deterministic string hash, so environment labels stay short. */
+function hash(text: string): string {
+  let h1 = 0xdeadbeef;
+  let h2 = 0x41c6ce57;
+  for (let index = 0; index < text.length; index += 1) {
+    const code = text.charCodeAt(index);
+    h1 = Math.imul(h1 ^ code, 2654435761);
+    h2 = Math.imul(h2 ^ code, 1597334677);
+  }
+  h1 =
+    Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^
+    Math.imul(h2 ^ (h2 >>> 13), 3266489909);
+  h2 =
+    Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^
+    Math.imul(h1 ^ (h1 >>> 13), 3266489909);
+  return (4294967296 * (2097151 & h2) + (h1 >>> 0)).toString(36);
+}
+
+/**
+ * Labels each atom by its whole connected environment (Weisfeiler-Lehman
+ * refinement), so two atoms with equal properties but different neighbours get
+ * different labels and moving a bond between them changes the bond facts. Each
+ * component refines for as many rounds as it has atoms, which depends only on
+ * that component: the facts of two separate fragments still combine by union.
+ */
+function environmentLabels(atoms: KetAtom[], bonds: KetBond[]): string[] {
+  const neighbours: Array<Array<{ other: number; edge: string }>> = atoms.map(
+    () => [],
+  );
+  for (const bond of bonds) {
+    const [begin, end] = bond.atoms;
+    const kind = `${bond.type}/${bond.stereo ?? 0}`;
+    // Wedge direction matters: mark which end each atom is for stereo bonds.
+    neighbours[begin].push({
+      other: end,
+      edge: bond.stereo ? `${kind}>` : kind,
+    });
+    neighbours[end].push({
+      other: begin,
+      edge: bond.stereo ? `${kind}<` : kind,
+    });
+  }
+  const component = atoms.map(() => -1);
+  const sizes: number[] = [];
+  atoms.forEach((_, start) => {
+    if (component[start] !== -1) return;
+    const id = sizes.length;
+    const stack = [start];
+    component[start] = id;
+    let size = 0;
+    while (stack.length > 0) {
+      const atom = stack.pop() as number;
+      size += 1;
+      for (const { other } of neighbours[atom]) {
+        if (component[other] === -1) {
+          component[other] = id;
+          stack.push(other);
+        }
+      }
+    }
+    sizes.push(size);
+  });
+  let labels = atoms.map(atomFact);
+  const rounds = Math.max(0, ...sizes);
+  for (let round = 1; round <= rounds; round += 1) {
+    labels = labels.map((label, atom) =>
+      round > sizes[component[atom]]
+        ? label
+        : hash(
+            `${label}|${neighbours[atom]
+              .map(({ other, edge }) => `${edge}:${labels[other]}`)
+              .sort()
+              .join(',')}`,
+          ),
+    );
+  }
+  return labels;
+}
+
 export function ketFacts(raw: string | KetDocument): KetFacts {
   const document = (
     typeof raw === 'string' ? JSON.parse(raw) : raw
@@ -61,9 +140,13 @@ export function ketFacts(raw: string | KetDocument): KetFacts {
         continue;
       }
       const atoms = target.atoms ?? [];
+      const bonds = target.bonds ?? [];
+      const environment = environmentLabels(atoms, bonds);
+      const endpoint = (index: number) =>
+        `${atomFact(atoms[index])} #${environment[index]}`;
       facts.atoms.push(...atoms.map(atomFact));
-      for (const bond of target.bonds ?? []) {
-        const [begin, end] = bond.atoms.map((index) => atomFact(atoms[index]));
+      for (const bond of bonds) {
+        const [begin, end] = bond.atoms.map(endpoint);
         // Wedge direction matters: keep begin/end order only for stereo bonds.
         const ends = bond.stereo ? [begin, end] : [begin, end].sort();
         facts.bonds.push(

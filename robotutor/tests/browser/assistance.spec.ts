@@ -41,15 +41,16 @@ test('controls OLMS hides by data-testid still exist under those exact ids', asy
 
 test('hotkeys of hidden buttons stay inert', async ({ page }) => {
   await openHarness(page, { hide: OLMS_HIDDEN_BUTTONS });
-  await load(page, KET_FIXTURES.benzeneKekule.ket);
+  const expected = ketFacts(KET_FIXTURES.benzeneKekule.ket);
+  // One chord per fresh load: pressed in sequence, Alt+A (aromatize) and
+  // Ctrl+Alt+A (dearomatize) would undo each other and hide a regression.
   for (const chord of HIDDEN_BUTTON_HOTKEYS) {
+    await load(page, KET_FIXTURES.benzeneKekule.ket);
     await focusCanvas(page);
     await page.keyboard.press(chord);
+    await expectNoDialog(page);
+    expect(ketFacts(await exportKet(page)), chord).toEqual(expected);
   }
-  await expectNoDialog(page);
-  expect(ketFacts(await exportKet(page))).toEqual(
-    ketFacts(KET_FIXTURES.benzeneKekule.ket),
-  );
 });
 
 test('the same hotkeys act when the buttons are shown, so the inert check is meaningful', async ({
