@@ -34,6 +34,8 @@ export interface KetAtomNode {
   explicitValence?: number;
   isotope?: number | null;
   radical?: number;
+  /** Robotutor: explicit nonbonding (lone-pair) electrons, 0..8. */
+  nonbonding?: number;
   attachmentPoints?: AttachmentPoints | null;
   cip?: AtomCIP | null;
   selected?: boolean;
