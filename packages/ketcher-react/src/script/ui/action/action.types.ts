@@ -45,6 +45,7 @@ type ToolVariant =
   | 'chain'
   | 'charge-minus'
   | 'charge-plus'
+  | 'electrons'
   | 'check'
   | 'chiral-flag'
   | 'cip'

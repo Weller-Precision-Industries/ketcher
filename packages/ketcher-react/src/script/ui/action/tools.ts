@@ -102,6 +102,13 @@ const toolActions: Record<string, ToolActionEntry> = {
     action: { tool: 'charge', opts: -1 },
     hidden: (options) => isHidden(options, 'charge-minus'),
   },
+  // Robotutor: explicit nonbonding (lone-pair) electrons for Lewis structures.
+  // Click adds a pair, Shift+click adds one electron, Alt+click removes one.
+  electrons: {
+    title: 'Nonbonding electrons',
+    action: { tool: 'electrons' },
+    hidden: (options) => isHidden(options, 'electrons'),
+  },
   'transform-rotate': {
     title: 'Rotate Tool',
     action: { tool: 'rotate' },

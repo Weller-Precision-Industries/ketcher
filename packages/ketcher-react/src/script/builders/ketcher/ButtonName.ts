@@ -73,6 +73,8 @@ export type ButtonName =
   | 'shape-line'
   // text group
   | 'text'
+  // charge group
+  | 'electrons'
   // right
   | 'enhanced-stereo'
   | 'create-monomer';
