@@ -49,6 +49,10 @@ import { SUPERATOM_CLASS_TEXT } from 'application/render/restruct/resgroup';
 import assert from 'assert';
 import { getAttachmentPointTooltip } from 'domain/helpers/attachmentPointTooltips';
 import { ShowHydrogenLabels } from './showHydrogenLabels';
+import {
+  layoutNonbondingElectrons,
+  NONBONDING_SIDE_DIRECTIONS,
+} from './nonbondingElectrons';
 
 interface ElemAttr {
   text: string;
@@ -572,6 +576,7 @@ class ReAtom extends ReObject {
 
     if (this.showLabel) {
       let hydroIndex: any = null;
+      let isImplicitHydrogenShown = false;
       if (isHydrogen && implh > 0) {
         hydroIndex = showHydroIndex(this, render, implh, rightMargin);
         rightMargin += hydroIndex.rbb.width + delta;
@@ -634,6 +639,7 @@ class ReAtom extends ReObject {
         hydroIndex = data.hydroIndex;
         rightMargin = data.rightMargin;
         leftMargin = data.leftMargin;
+        isImplicitHydrogenShown = true;
         restruct.addReObjectPath(
           LayerMap.data,
           this.visel,
@@ -675,6 +681,26 @@ class ReAtom extends ReObject {
           ps,
           true,
         );
+      }
+
+      if (this.a.nonbonding > 0) {
+        const nonbonding = showNonbondingElectrons(
+          this,
+          render,
+          struct,
+          leftMargin,
+          rightMargin,
+          isImplicitHydrogenShown,
+        );
+        if (nonbonding) {
+          restruct.addReObjectPath(
+            LayerMap.data,
+            this.visel,
+            nonbonding,
+            ps,
+            true,
+          );
+        }
       }
 
       if (this.a.badConn && options.showValenceWarnings) {
@@ -1231,6 +1257,10 @@ class ReAtom extends ReObject {
     atomElement?.node?.setAttribute('data-atomValence', this.a.valence ?? '');
     atomElement?.node?.setAttribute('data-atomRadical', this.a.radical ?? '');
     atomElement?.node?.setAttribute(
+      'data-atomNonbonding',
+      this.a.nonbonding ?? '',
+    );
+    atomElement?.node?.setAttribute(
       'data-atomRingBondCount',
       this.a.ringBondCount ?? '',
     );
@@ -1419,6 +1449,7 @@ function isLabelVisible(restruct, options, atom: ReAtom) {
     atom.a.alias ||
     atom.a.isotope !== null ||
     atom.a.radical !== 0 ||
+    atom.a.nonbonding > 0 ||
     atom.a.charge !== null ||
     atom.a.explicitValence >= 0 ||
     atom.a.atomList !== null ||
@@ -1755,6 +1786,85 @@ function showRadical(atom: ReAtom, render: Render): Omit<ElemAttr, 'text'> {
   if (atom.a.radical === 3) vshift -= options.lineWidth / 2;
   pathAndRBoxTranslate(radical.path, radical.rbb, 0, vshift);
   return radical;
+}
+
+/**
+ * Draws explicit nonbonding (lone-pair) electrons as dots around the atom
+ * label: pairs as two dots side by side, plus a single dot when the count is
+ * odd, on up to four sides chosen away from bonds (see
+ * layoutNonbondingElectrons). Dots reuse the radical bullet style.
+ */
+function showNonbondingElectrons(
+  atom: ReAtom,
+  render: Render,
+  struct: Struct,
+  leftMargin: number,
+  rightMargin: number,
+  isImplicitHydrogenShown: boolean,
+) {
+  const options = render.options;
+  const paper: any = render.paper;
+  const ps: Vec2 = Scale.modelToCanvas(atom.a.pp, options);
+
+  const occupiedDirections: Vec2[] = [];
+  getVisibleNeighborHalfBondIds(struct, atom).forEach((halfBondId) => {
+    const halfBond = struct.halfBonds.get(halfBondId);
+    if (halfBond?.dir) occupiedDirections.push(halfBond.dir);
+  });
+  if (isImplicitHydrogenShown) {
+    occupiedDirections.push(
+      atom.hydrogenOnTheLeft
+        ? NONBONDING_SIDE_DIRECTIONS.left
+        : NONBONDING_SIDE_DIRECTIONS.right,
+    );
+  }
+  if (atom.a.radical !== 0) {
+    occupiedDirections.push(NONBONDING_SIDE_DIRECTIONS.up);
+  }
+
+  const groups = layoutNonbondingElectrons(
+    atom.a.nonbonding,
+    occupiedDirections,
+  );
+  if (groups.length === 0) return null;
+
+  const radius = options.lineWidth;
+  const hshift = 1.6 * options.lineWidth; // same spacing as radical pairs
+  const gap = 0.5 * options.lineWidth;
+  const labelHeight = atom.label?.rbb.height ?? options.fontszInPx;
+  // Leave room for the radical mark when dots have to share the top side.
+  const radicalClearance = atom.a.radical !== 0 ? 3 * radius + gap : 0;
+
+  const path = paper.set();
+  groups.forEach(({ side, electrons }) => {
+    let center: Vec2;
+    switch (side) {
+      case 'up':
+        center = new Vec2(0, -(0.5 * labelHeight + radius + radicalClearance));
+        break;
+      case 'down':
+        center = new Vec2(0, 0.5 * labelHeight + radius);
+        break;
+      case 'left':
+        center = new Vec2(leftMargin - gap - radius, 0);
+        break;
+      case 'right':
+      default:
+        center = new Vec2(rightMargin + gap + radius, 0);
+        break;
+    }
+    const isHorizontalPair = side === 'up' || side === 'down';
+    const offset = isHorizontalPair ? new Vec2(hshift, 0) : new Vec2(0, hshift);
+    const points =
+      electrons === 2 ? [center.sub(offset), center.add(offset)] : [center];
+    points.forEach((point) => {
+      const bullet = draw.radicalBullet(paper, ps.add(point), options);
+      bullet.node?.setAttribute('data-testid', 'atom-nonbonding-electron');
+      path.push(bullet);
+    });
+  });
+  path.attr('fill', atom.color);
+  return path;
 }
 
 function showIsotope(

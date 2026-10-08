@@ -107,6 +107,7 @@ function atomToKet(source, monomer?: BaseMonomer) {
   ifDef(result, 'explicitValence', source.explicitValence, -1);
   ifDef(result, 'isotope', source.isotope);
   ifDef(result, 'radical', source.radical, 0);
+  ifDef(result, 'nonbonding', source.nonbonding, 0);
   ifDef(result, 'attachmentPoints', source.attachmentPoints, 0);
   ifDef(result, 'cip', source.cip, '');
   ifDef(result, 'selected', source.getInitiallySelected());

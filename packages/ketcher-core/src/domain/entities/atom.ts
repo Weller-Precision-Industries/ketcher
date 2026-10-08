@@ -93,6 +93,12 @@ export interface AtomAttributes {
   rglabel?: string | null;
   charge?: number | null;
   radical?: number;
+  /**
+   * Explicit nonbonding (lone-pair) electrons drawn around the atom for
+   * Lewis structures. Integer 0..8. Display-only: it does not take part in
+   * valence or implicit-hydrogen calculations and is independent of `radical`.
+   */
+  nonbonding?: number;
   cip?: AtomCIP | null;
   isotope?: number | null;
   alias?: string | null;
@@ -150,6 +156,7 @@ export class Atom extends BaseMicromoleculeEntity {
     label: 'C',
     isotope: null,
     radical: 0,
+    nonbonding: 0,
     cip: null,
     charge: null,
     explicitValence: -1,
@@ -186,6 +193,7 @@ export class Atom extends BaseMicromoleculeEntity {
   isPreview: boolean;
   hCount: number;
   radical: number;
+  nonbonding: number;
   cip: AtomCIP | null;
   charge: number | null;
   explicitValence: number;
@@ -223,6 +231,9 @@ export class Atom extends BaseMicromoleculeEntity {
     this.alias = getValueOrDefault(attributes.alias, Atom.attrlist.alias);
     this.isotope = getValueOrDefault(attributes.isotope, Atom.attrlist.isotope);
     this.radical = getValueOrDefault(attributes.radical, Atom.attrlist.radical);
+    this.nonbonding = normalizeNonbondingElectrons(
+      getValueOrDefault(attributes.nonbonding, Atom.attrlist.nonbonding),
+    );
     this.cip = getValueOrDefault(attributes.cip, Atom.attrlist.cip);
     this.charge = getValueOrDefault(attributes.charge, Atom.attrlist.charge);
     this.rglabel = getValueOrDefault(attributes.rglabel, Atom.attrlist.rglabel);
@@ -418,6 +429,7 @@ export class Atom extends BaseMicromoleculeEntity {
       this.label === 'C' &&
       this.isotope === null &&
       this.radical === 0 &&
+      this.nonbonding === 0 &&
       this.charge === null &&
       this.explicitValence < 0 &&
       this.ringBondCount === 0 &&
@@ -1103,6 +1115,18 @@ export class Atom extends BaseMicromoleculeEntity {
   ): structOrSgroup is SGroup {
     return structOrSgroup instanceof SGroup;
   }
+}
+
+export const MAX_NONBONDING_ELECTRONS = 8;
+
+/**
+ * Clamps a nonbonding (lone-pair) electron count to an integer in
+ * [0, MAX_NONBONDING_ELECTRONS]. Invalid values become 0.
+ */
+export function normalizeNonbondingElectrons(value: unknown): number {
+  const numeric = Number(value);
+  if (!Number.isFinite(numeric)) return 0;
+  return Math.min(MAX_NONBONDING_ELECTRONS, Math.max(0, Math.trunc(numeric)));
 }
 
 export function radicalElectrons(radical: unknown) {

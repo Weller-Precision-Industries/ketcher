@@ -58,6 +58,7 @@ export function atomToStruct(source) {
   ifDef(params, 'explicitValence', source.explicitValence);
   ifDef(params, 'isotope', source.isotope);
   ifDef(params, 'radical', source.radical);
+  ifDef(params, 'nonbonding', source.nonbonding);
   ifDef(params, 'cip', source.cip);
   ifDef(params, 'attachmentPoints', source.attachmentPoints);
   // stereo
