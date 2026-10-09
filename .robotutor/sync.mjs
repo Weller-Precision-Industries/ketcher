@@ -86,7 +86,12 @@ export function main() {
 	for (let page = 1; ; page++) {
 		const { workflows } = api(`repos/${REPOSITORY}/actions/workflows?per_page=100&page=${page}`);
 		for (const workflow of workflows) {
-			if (!OWN_WORKFLOWS.includes(workflow.path) && workflow.state === "active") {
+			// GitHub-managed dynamic/ workflows (Dependabot, CodeQL default setup) reject the API (HTTP 422).
+			if (
+				!OWN_WORKFLOWS.includes(workflow.path) &&
+				!workflow.path.startsWith("dynamic/") &&
+				workflow.state === "active"
+			) {
 				api(`repos/${REPOSITORY}/actions/workflows/${workflow.id}/disable`, "PUT");
 				console.log(`Disabled inherited workflow ${workflow.path}`);
 			}
