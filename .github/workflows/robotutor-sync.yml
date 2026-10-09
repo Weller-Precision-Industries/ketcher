@@ -26,6 +26,8 @@ jobs:
           token: ${{ secrets.ROBOTUTOR_SYNC_TOKEN || github.token }}
       - name: Merge upstream without executing its code; propose PR and dispatch build
         env:
-          GH_TOKEN: ${{ secrets.ROBOTUTOR_SYNC_TOKEN || github.token }}
+          # Actions/API calls use the job token (actions: write); the optional PAT
+          # only authenticates the git push through the checkout credentials above.
+          GH_TOKEN: ${{ github.token }}
           ROBOTUTOR_SYNC_TOKEN_PRESENT: ${{ secrets.ROBOTUTOR_SYNC_TOKEN != '' }}
         run: node .robotutor/sync.mjs
