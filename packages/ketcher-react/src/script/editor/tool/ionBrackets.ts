@@ -16,6 +16,7 @@
 
 import {
   Atom,
+  checkOverlapping,
   fromSgroupAddition,
   fromSgroupDeletion,
   FunctionalGroup,
@@ -98,6 +99,17 @@ class IonBracketsTool implements Tool {
 
     const restruct = this.editor.render.ctab;
     const existing = findBracketSgroup(restruct.molecule, atomIds);
+    // As in the S-group tool: brackets that partly overlap another S-group
+    // (one spanning this structure and another) cannot join the hierarchy.
+    if (
+      existing === null &&
+      checkOverlapping(restruct.molecule, 'common', atomIds)
+    ) {
+      this.editor.event.message.dispatch({
+        error: 'Partial S-group overlapping is not allowed.',
+      });
+      return true;
+    }
     this.editor.update(
       existing === null
         ? fromSgroupAddition(

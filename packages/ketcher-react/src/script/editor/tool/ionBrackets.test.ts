@@ -4,6 +4,7 @@ import IonBracketsTool, {
 } from './ionBrackets';
 
 jest.mock('ketcher-core', () => ({
+  checkOverlapping: jest.fn(() => false),
   fromSgroupAddition: jest.fn((_restruct, type, atoms) => ({
     add: { type, atoms },
   })),
@@ -60,6 +61,7 @@ function createEditor(
     selection: jest.fn(),
     hover: jest.fn(),
     update: jest.fn(),
+    event: { message: { dispatch: jest.fn() } },
     findItem: jest.fn(() => item),
     render: { ctab: { molecule } },
   };
@@ -131,6 +133,22 @@ describe('IonBracketsTool', () => {
     );
     expect(getCoreMock().fromSgroupAddition).not.toHaveBeenCalled();
     expect(editor.update).toHaveBeenCalledWith({ remove: 7 });
+  });
+
+  it('refuses brackets that would partly overlap another S-group', () => {
+    getCoreMock().checkOverlapping.mockReturnValueOnce(true);
+    const editor = createEditor(createStruct(), { map: 'atoms', id: 0 });
+    new IonBracketsTool(editor as never).click({});
+
+    expect(getCoreMock().checkOverlapping).toHaveBeenCalledWith(
+      editor.render.ctab.molecule,
+      'common',
+      [0, 1, 2, 3, 4],
+    );
+    expect(editor.update).not.toHaveBeenCalled();
+    expect(editor.event.message.dispatch).toHaveBeenCalledWith({
+      error: 'Partial S-group overlapping is not allowed.',
+    });
   });
 
   it('does nothing on empty canvas or a structure with an atom list', () => {
