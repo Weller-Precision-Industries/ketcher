@@ -112,6 +112,13 @@ const toolActions: Record<string, ToolActionEntry> = {
     action: { tool: 'electrons' },
     hidden: (options) => isHidden(options, 'electrons'),
   },
+  // Robotutor: square brackets around a whole ion for Lewis structures. Click
+  // a structure to bracket it (a GEN S-group), click it again to remove them.
+  'ion-brackets': {
+    title: 'Ion brackets',
+    action: { tool: 'ion-brackets' },
+    hidden: (options) => isHidden(options, 'ion-brackets'),
+  },
   'transform-rotate': {
     title: 'Rotate Tool',
     action: { tool: 'rotate' },

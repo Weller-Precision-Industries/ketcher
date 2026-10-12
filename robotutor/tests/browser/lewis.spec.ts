@@ -21,8 +21,9 @@ import {
 
 /**
  * Lewis-structure behaviour OLMS relies on (OLM-1712): the fork's `nonbonding`
- * KET atom field, the electron tool, and one-step undoable atom attribute edits
- * (lone electrons, charge, atom map) built from ketcher-core's own actions.
+ * KET atom field, the electron tool, the ion-bracket tool (OLM-2451), and
+ * one-step undoable atom attribute edits (lone electrons, charge, atom map)
+ * built from ketcher-core's own actions.
  */
 
 type LewisAtom = {
@@ -178,16 +179,66 @@ test('one Action of lone-electron, charge and atom-map edits is a single undo st
   expect(await atoms(page)).toEqual(edited);
 });
 
-test('the electron button follows the buttons config, and the retrosynthetic arrow keeps its test id', async ({
+type KetSgroup = { type: string; atoms: number[] };
+
+const sgroups = async (page: Page): Promise<KetSgroup[]> =>
+  (JSON.parse(await exportKet(page)).mol0.sgroups ?? []).map(
+    ({ type, atoms }: KetSgroup) => ({
+      type,
+      atoms: [...atoms].sort((a, b) => a - b),
+    }),
+  );
+
+test('the ion-bracket tool brackets a whole structure as one GEN S-group and toggles it off; each click is one undo step', async ({
+  page,
+}) => {
+  await openHarness(page);
+  await load(page, KET_FIXTURES.nitriteLewisSkeleton.ket);
+  const terminalOxygen = await atomPoint(page, 1);
+  const before = (await history(page)).undo;
+
+  await tool(page, 'ion-brackets').click();
+  await clickWith(page, terminalOxygen);
+  const bracketed = [{ type: 'GEN', atoms: [0, 1, 2] }];
+  expect(await sgroups(page)).toEqual(bracketed);
+  // Brackets carry no charge: the ion's charge stays on its atom.
+  expect(await atoms(page)).toEqual([
+    { label: 'N' },
+    { label: 'O' },
+    { label: 'O', charge: -1 },
+  ]);
+
+  await clickWith(page, await atomPoint(page, 0));
+  expect(await sgroups(page)).toEqual([]);
+  expect((await history(page)).undo).toBe(before + 2);
+
+  await tool(page, 'undo').click();
+  expect(await sgroups(page)).toEqual(bracketed);
+  await tool(page, 'undo').click();
+  expect(await sgroups(page)).toEqual([]);
+});
+
+test('a bracketed ion survives load → getKet', async ({ page }) => {
+  await openHarness(page);
+  const document = JSON.parse(KET_FIXTURES.nitriteLewisSkeleton.ket);
+  document.mol0.sgroups = [{ type: 'GEN', atoms: [0, 1, 2] }];
+  await load(page, JSON.stringify(document));
+  expect(await sgroups(page)).toEqual([{ type: 'GEN', atoms: [0, 1, 2] }]);
+});
+
+test('the electron and ion-bracket buttons follow the buttons config, and the retrosynthetic arrow keeps its test id', async ({
   page,
 }) => {
   await openHarness(page, { hide: OLMS_HIDDEN_BUTTONS });
-  await expect(
-    page.getByTestId('electrons').filter({ visible: true }),
-  ).toHaveCount(0);
+  for (const name of ['electrons', 'ion-brackets']) {
+    await expect(page.getByTestId(name).filter({ visible: true })).toHaveCount(
+      0,
+    );
+  }
 
   await openHarness(page, { hide: LEWIS_HIDDEN_BUTTONS });
   await expect(tool(page, 'electrons')).toBeVisible();
+  await expect(tool(page, 'ion-brackets')).toBeVisible();
   // With the arrows before it hidden, the retrosynthetic arrow is the arrow
   // group's default tool; OLMS can only hide it by this data-testid.
   await expect(tool(page, RETROSYNTHETIC_ARROW_TEST_ID)).toBeVisible();

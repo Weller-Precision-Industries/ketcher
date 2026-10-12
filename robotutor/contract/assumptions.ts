@@ -34,6 +34,7 @@ export const OLMS_HIDDEN_BUTTONS = [
   'shape-line',
   'text',
   'electrons',
+  'ion-brackets',
   'reaction-plus',
   'arrows',
   'reaction-arrow-open-angle',
@@ -73,6 +74,7 @@ export const HIDDEN_BUTTON_TEST_IDS = [
   'reaction-plus',
   'arrows-drop-down-button',
   'electrons',
+  'ion-brackets',
 ] as const;
 
 /** Controls with no `buttons` switch; OLMS hides them by these exact data-testids. */
@@ -142,11 +144,12 @@ export const HIGHLIGHT_COLOR = '#e8590c';
 
 /**
  * Lewis answers (OLM-1712, OLMS `lewis_answer` profile): every assessed button
- * stays hidden except the fork's electron tool, the arrow group and the
- * resonance/equilibrium arrows.
+ * stays hidden except the fork's electron and ion-bracket tools, the arrow
+ * group and the resonance/equilibrium arrows.
  */
 export const LEWIS_SHOWN_BUTTONS = [
   'electrons',
+  'ion-brackets',
   'arrows',
   'reaction-arrow-both-ends-filled-triangle',
   'reaction-arrow-equilibrium-filled-half-bow',
