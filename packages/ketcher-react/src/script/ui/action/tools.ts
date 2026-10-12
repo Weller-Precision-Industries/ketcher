@@ -105,6 +105,20 @@ const toolActions: Record<string, ToolActionEntry> = {
     action: { tool: 'charge', opts: -1 },
     hidden: (options) => isHidden(options, 'charge-minus'),
   },
+  // Robotutor: explicit nonbonding (lone-pair) electrons for Lewis structures.
+  // Click adds a pair, Shift+click adds one electron, Alt+click removes one.
+  electrons: {
+    title: 'Nonbonding electrons',
+    action: { tool: 'electrons' },
+    hidden: (options) => isHidden(options, 'electrons'),
+  },
+  // Robotutor: square brackets around a whole ion for Lewis structures. Click
+  // a structure to bracket it (a GEN S-group), click it again to remove them.
+  'ion-brackets': {
+    title: 'Ion brackets',
+    action: { tool: 'ion-brackets' },
+    hidden: (options) => isHidden(options, 'ion-brackets'),
+  },
   'transform-rotate': {
     title: 'toolbar:tools.rotate',
     action: { tool: 'rotate' },

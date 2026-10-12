@@ -10,11 +10,16 @@ const pkg = (name: string) =>
 const standalone = join(root, 'packages', 'ketcher-standalone');
 
 describe('fork packages as OLMS consumes them', () => {
-  it('versions ketcher-core, ketcher-react and ketcher-standalone together', () => {
+  // ketcher-macromolecules too: upstream's build order (react before
+  // macromolecules) leaves a bare import('ketcher-macromolecules') in the react
+  // bundle, so a consumer must install the matching macromolecules tarball
+  // unless react is rebuilt after it (what v3.18.0-robotutor.2 did).
+  it('versions ketcher-core, ketcher-react, ketcher-standalone and ketcher-macromolecules together', () => {
     const versions = [
       'ketcher-core',
       'ketcher-react',
       'ketcher-standalone',
+      'ketcher-macromolecules',
     ].map((name) => pkg(name).version);
     expect(new Set(versions).size).toBe(1);
   });

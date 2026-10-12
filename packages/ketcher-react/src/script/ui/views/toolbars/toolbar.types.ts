@@ -96,6 +96,8 @@ type LeftToolbarItemVariant =
   // charge group
   | 'charge-plus'
   | 'charge-minus'
+  | 'electrons'
+  | 'ion-brackets'
   // sgroup group
   | 'sgroup'
   // reaction

@@ -10,6 +10,7 @@ Drawing common rings, reusable fragments, functional groups, Markush (R-Group) s
 - **Functional Groups** — the _Functional Groups_ library tab (`Shift+f`) inserts predefined groups. They can replace an atom, be dropped on the canvas, or be joined by dragging a single bond. Groups are abbreviated to a label and can be **Expanded**, **Contracted**, or have their **Abbreviation Removed** from the right-click menu.
 - **R-Groups (Markush)** — the _R-Group_ toolbox: _R-Group Label_, _R-Group Fragment_, and _Attachment Point_ tools, plus _R-Group Logic_ (occurrence, RestH, If-R(i)-Then conditions).
 - **S-Groups** — the _S-Group tool_ (`Mod+g`) marks a fragment as Data, Multiple group, SRU Polymer, Copolymer, Superatom, Query component, or Nucleotide Component.
+- **Ion brackets (Robotutor fork)** — the _Ion brackets_ tool next to the charge tools puts square brackets around the whole clicked structure, for ions in Lewis structures; clicking a bracketed structure removes them.
 
 ## Expected behavior
 
@@ -41,6 +42,11 @@ Inserting a template or group produces a well-formed structure; abbreviated grou
 - **WHEN** the user applies an incompatible tool to an atom inside a functional group
 - **THEN** Ketcher blocks the edit and offers to _Remove the Abbreviation_
 
+#### Scenario: Bracketing an ion (Robotutor fork)
+
+- **WHEN** the user clicks an atom or bond of a structure with the _Ion brackets_ tool
+- **THEN** every atom connected to it is enclosed in one generic (GEN) S-group drawn as square brackets, or, if exactly that structure is already bracketed, the brackets are removed; each click is one undo step
+
 #### Scenario: Creating a Markush R-Group member
 
 - **WHEN** the user assigns a fragment to an R-Group label and defines its attachment point(s)
@@ -50,6 +56,7 @@ Inserting a template or group produces a well-formed structure; abbreviated grou
 
 - Functional groups and Superatom S-Groups can only be selected/moved/deleted as a whole; their chemical meaning is preserved when contracted.
 - Templates keep the initial structure's bond lengths on fusion.
+- Ion brackets (Robotutor fork) are a plain generic S-group with no attributes: the ion's charge stays on its atoms, and the brackets survive KET round-trips.
 - Functional groups are treated as super atoms when opening/saving `.mol` files.
 
 ## Limitations

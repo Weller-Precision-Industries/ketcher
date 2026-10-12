@@ -6,7 +6,13 @@
  */
 import { StrictMode, useMemo } from 'react';
 import { createRoot } from 'react-dom/client';
-import { type Ketcher, ketcherProvider } from 'ketcher-core';
+import {
+  Action,
+  fromAtomsAttrs,
+  type Ketcher,
+  ketcherProvider,
+  MAX_NONBONDING_ELECTRONS,
+} from 'ketcher-core';
 import { Editor } from 'ketcher-react';
 import 'ketcher-react/dist/index.css';
 import { StandaloneStructServiceProvider } from 'ketcher-standalone/dist/binaryWasm';
@@ -19,6 +25,12 @@ export type RobotutorProbe = {
   inits: string[];
   errors: string[];
   provider: typeof ketcherProvider;
+  /** ketcher-core exports OLMS `atomAttributeEditor` builds one undoable atom edit from. */
+  core: {
+    Action: typeof Action;
+    fromAtomsAttrs: typeof fromAtomsAttrs;
+    MAX_NONBONDING_ELECTRONS: number;
+  };
 };
 
 const params = new URLSearchParams(window.location.search);
@@ -28,6 +40,7 @@ const probe: RobotutorProbe = {
   inits: [],
   errors: [],
   provider: ketcherProvider,
+  core: { Action, fromAtomsAttrs, MAX_NONBONDING_ELECTRONS },
 };
 (window as unknown as { __robotutor: RobotutorProbe }).__robotutor = probe;
 

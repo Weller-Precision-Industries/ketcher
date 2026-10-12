@@ -21,6 +21,8 @@ import AttachTool from './attach';
 import BondTool from './bond';
 import ChainTool from './chain';
 import ChargeTool from './charge';
+import ElectronsTool, { ELECTRONS_TOOL_NAME } from './electrons';
+import IonBracketsTool, { ION_BRACKETS_TOOL_NAME } from './ionBrackets';
 import EnhancedStereoTool from './enhanced-stereo';
 import EraserTool from './eraser';
 import HandTool from './hand';
@@ -57,6 +59,8 @@ export const toolsMap: Record<string, ToolConstructorInterface> = {
   // than `unknown[]`, but toolsMap only ever calls these with the correct args.
   template: TemplateTool as unknown as ToolConstructorInterface,
   charge: ChargeTool,
+  [ELECTRONS_TOOL_NAME]: ElectronsTool,
+  [ION_BRACKETS_TOOL_NAME]: IonBracketsTool,
   rgroupfragment: RGroupFragmentTool,
   apoint: APointTool,
   attach: AttachTool,
