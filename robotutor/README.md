@@ -42,6 +42,7 @@ file it touches is one script line in the root `package.json`.
 | Lifecycle       | `boot`                             | Same-origin assets only; a remount unregisters the old instance.                                                                                                                        |
 | Accessibility   | `a11y`                             | Toolbar keyboard reach; axe violations may not grow past the known set.                                                                                                                 |
 | Indigo          | `indigo-wasm`                      | Version matches the pin; documented operations exist; KET charges; stable InChIKey; `check()` format; parse errors throw.                                                               |
+| Lewis           | `lewis`, `api-surface`             | Fork `nonbonding` KET field and its dots; `electrons` tool and button switch; one-step undoable lone-electron/charge/atom-map edits; retrosynthetic arrow test id (OLM-1712).           |
 
 When a test here fails after an upstream merge, decide whether upstream broke
 something (fix it on `robotutor`, ideally upstream too) or changed a behaviour OLMS

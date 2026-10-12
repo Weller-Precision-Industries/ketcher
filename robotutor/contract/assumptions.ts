@@ -33,6 +33,7 @@ export const OLMS_HIDDEN_BUTTONS = [
   'shape-rectangle',
   'shape-line',
   'text',
+  'electrons',
   'reaction-plus',
   'arrows',
   'reaction-arrow-open-angle',
@@ -71,6 +72,7 @@ export const HIDDEN_BUTTON_TEST_IDS = [
   'text',
   'reaction-plus',
   'arrows-drop-down-button',
+  'electrons',
 ] as const;
 
 /** Controls with no `buttons` switch; OLMS hides them by these exact data-testids. */
@@ -137,3 +139,32 @@ export const KNOWN_AXE_VIOLATIONS = [
 ] as const;
 
 export const HIGHLIGHT_COLOR = '#e8590c';
+
+/**
+ * Lewis answers (OLM-1712, OLMS `lewis_answer` profile): every assessed button
+ * stays hidden except the fork's electron tool, the arrow group and the
+ * resonance/equilibrium arrows.
+ */
+export const LEWIS_SHOWN_BUTTONS = [
+  'electrons',
+  'arrows',
+  'reaction-arrow-both-ends-filled-triangle',
+  'reaction-arrow-equilibrium-filled-half-bow',
+  'reaction-arrow-equilibrium-filled-triangle',
+  'reaction-arrow-equilibrium-open-angle',
+] as const;
+export const LEWIS_HIDDEN_BUTTONS = OLMS_HIDDEN_BUTTONS.filter(
+  (name) => !(LEWIS_SHOWN_BUTTONS as readonly string[]).includes(name),
+);
+
+/**
+ * `ButtonName` has no entry for the retrosynthetic arrow, so once the arrows
+ * before it are hidden it becomes the arrow group's default tool. OLMS hides it
+ * in every assessed profile by this exact data-testid.
+ */
+export const RETROSYNTHETIC_ARROW_TEST_ID = 'reaction-arrow-retrosynthetic';
+
+/** Upper bound of the fork's `nonbonding` KET atom field (0..8). */
+export const MAX_NONBONDING_ELECTRONS = 8;
+/** data-testid of every drawn nonbonding electron dot. */
+export const NONBONDING_ELECTRON_TEST_ID = 'atom-nonbonding-electron';

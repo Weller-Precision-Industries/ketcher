@@ -11,6 +11,7 @@ Chemists need to place, replace, and annotate atoms in a 2D structure — choosi
 - **Less common elements** — open the _Periodic Table_ (single atom, atom _List_, or _Not List_) or the _Extended Table_ (generic groups, special nodes, pseudo-atoms) when the element is not on the toolbar.
 - **Charge** — the _Charge Plus_ / _Charge Minus_ tools increment/decrement an atom's charge on each click.
 - **Type-to-edit** — click an atom with the _Selection tool_ and start typing to change its label.
+- **Nonbonding electrons (Robotutor fork)** — the _Nonbonding electrons_ tool next to the charge tools adds a lone pair to the clicked atom; Shift+click adds one electron and Alt+click removes one.
 - **Atom Properties dialog** — double-click an atom (or press `/`) to edit element, charge, isotope, valence, radical, and query features.
 
 ## Expected behavior
@@ -37,6 +38,11 @@ Placing or replacing an atom keeps implicit hydrogen counts and valence consiste
 - **WHEN** an element/charge change produces an impossible valence
 - **THEN** the atom is displayed underlined in red to flag the error
 
+#### Scenario: Adding nonbonding electrons (Robotutor fork)
+
+- **WHEN** the user clicks an atom with the _Nonbonding electrons_ tool (Shift adds one electron, Alt removes one)
+- **THEN** the atom's explicit nonbonding electron count changes by two (or one), clamped to 0..8, and is drawn as dots around the label away from its bonds; a click that changes nothing adds no undo step
+
 #### Scenario: Adjusting charge
 
 - **WHEN** the user clicks an atom with the _Charge Plus_ or _Charge Minus_ tool
@@ -45,6 +51,7 @@ Placing or replacing an atom keeps implicit hydrogen counts and valence consiste
 ## Guarantees
 
 - Implicit hydrogen counts stay consistent with element, charge, isotope, and bond changes.
+- Explicit nonbonding electrons (Robotutor fork, for Lewis structures) are display-only: they never change valence, implicit hydrogens or radicals, and survive KET round-trips (omitted when zero). Other formats and Indigo operations drop them.
 - Every atom edit is one atomic entry in the undo history (see [undo-redo](./undo-redo.md)).
 - Structures remain as chemically well-formed as the editor can enforce; remaining issues are reported by [Structure Check](./import-export.md).
 

@@ -70,6 +70,15 @@ describe('declared API surface OLMS compiles against', () => {
     }
   });
 
+  it('declares the Lewis nonbonding-electron API OLMS uses (OLM-1712)', () => {
+    const atom = dts('ketcher-core/dist/domain/entities/atom.d.ts');
+    expect(atom).toContain('nonbonding?: number');
+    expect(atom).toContain('MAX_NONBONDING_ELECTRONS');
+    const index = dts('ketcher-core/dist/index.d.ts');
+    expect(index).toContain("export * from './domain/entities'");
+    expect(index).toContain("export * from './application/editor'");
+  });
+
   it('still exports ketcherProvider (OLMS StrictMode guard) from ketcher-core', () => {
     expect(dts('ketcher-core/dist/index.d.ts')).toContain(
       "export * from './application/ketcherProvider'",

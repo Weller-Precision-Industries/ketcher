@@ -293,6 +293,27 @@ export const KET_FIXTURES = {
       },
     }),
   },
+  nitriteLewisSkeleton: {
+    source: 'hand-authored KET',
+    title: 'Nitrite skeleton (Lewis)',
+    description:
+      'Nitrite with bonds and the -1 charge but no nonbonding electrons, for placing lone pairs with the electron tool (OLM-1712).',
+    ket: ket({
+      root: { nodes: [{ $ref: 'mol0' }] },
+      mol0: {
+        type: 'molecule',
+        atoms: [
+          { label: 'N', location: [0, 0, 0] },
+          { label: 'O', location: [0.866, -0.5, 0] },
+          { label: 'O', location: [-0.866, -0.5, 0], charge: -1 },
+        ],
+        bonds: [
+          { type: 2, atoms: [0, 1] },
+          { type: 1, atoms: [0, 2] },
+        ],
+      },
+    }),
+  },
 } satisfies Record<string, KetFixture>;
 
 export type KetFixtureId = keyof typeof KET_FIXTURES;
