@@ -46,6 +46,7 @@ type ToolVariant =
   | 'charge-minus'
   | 'charge-plus'
   | 'electrons'
+  | 'ion-brackets'
   | 'check'
   | 'chiral-flag'
   | 'cip'

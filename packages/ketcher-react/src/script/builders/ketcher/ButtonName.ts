@@ -75,6 +75,7 @@ export type ButtonName =
   | 'text'
   // charge group
   | 'electrons'
+  | 'ion-brackets'
   // right
   | 'enhanced-stereo'
   | 'create-monomer';
