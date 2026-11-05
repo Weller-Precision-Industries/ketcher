@@ -32,3 +32,5 @@ These span multiple packages and are the most valuable parts to understand. They
 - [operations-history](./operations-history.md) — `Action`/`BaseOperation` and `Command`/`Operation` + undo/redo
 - [monomer-library](./monomer-library.md) — loading/caching/merging monomers, RNA presets, library UI
 - [monomer-drag-and-drop](./monomer-drag-and-drop.md) — dragging library items onto the canvas (D3 drag, ghost preview, placement, mode differences)
+
+- [fork-maintenance](./fork-maintenance.md) — Robotutor local merge, GitHub review/build adapter and paired installer authority

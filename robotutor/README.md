@@ -47,3 +47,14 @@ file it touches is one script line in the root `package.json`.
 When a test here fails after an upstream merge, decide whether upstream broke
 something (fix it on `robotutor`, ideally upstream too) or changed a behaviour OLMS
 must adapt to (change the OLMS adapter and this contract in the same review).
+
+## Fork maintenance checks
+
+`npm run test:maintenance` runs the sync CLI characterization suite with every
+Git/GitHub command stubbed. It is also included in `npm test`; it needs only Node
+and does not merge upstream, push branches, change settings or dispatch workflows.
+
+The installed CLI remains `.robotutor/sync.mjs`. Local merge preparation lives in
+`sync-local.mjs`; the GitHub proposal/workflow adapter lives in `sync-github.mjs`.
+Until OLM-2618 transfers tooling authority, these three files and the CLI suite
+stay paired with `OLMS-V2/scripts/ketcher-fork/` through reviewed PRs.
