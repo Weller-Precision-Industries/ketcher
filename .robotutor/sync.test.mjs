@@ -7,6 +7,7 @@ import childProcess from "node:child_process";
 import fs from "node:fs";
 import { syncBuiltinESMExports } from "node:module";
 import test from "node:test";
+import { URL } from "node:url";
 
 import { main } from "./sync.mjs";
 
