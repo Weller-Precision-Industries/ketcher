@@ -6,7 +6,8 @@
   "description": "Regression contract for everything Robotutor/OLMS relies on in this Ketcher fork. Runs against the fork's own built workspace packages.",
   "license": "Apache-2.0",
   "scripts": {
-    "test": "npm run test:node && npm run test:browser",
+    "test": "npm run test:maintenance && npm run test:node && npm run test:browser",
+    "test:maintenance": "node --test ../.robotutor/sync.test.mjs",
     "install:browser": "playwright install chromium",
     "test:node": "vitest run",
     "build:harness": "vite build",
