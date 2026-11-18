@@ -61,3 +61,7 @@ Result:
 6. GitHub Action generates the Playwright test implementation and opens a PR.
 
 In short, the first workflow creates the autotest request, and the second workflow implements it.
+
+## Action pins and runner compatibility
+
+Update external actions by resolving the upstream release tag to its commit SHA. Keep the tag in the adjacent comment for the next review. CodeQL and Sonar now use checkout v7 in place of v2. CodeQL uses the v4 init, autobuild and analyze actions together. These actions run on Node 24. A self-hosted runner executing checkout v7 needs Actions Runner 2.327.1 or later. [Checkout runtime requirements](https://github.com/actions/checkout/blob/3d3c42e5aac5ba805825da76410c181273ba90b1/README.md) · [CodeQL versions](https://github.com/github/codeql-action/blob/33d7b85da1a04171e211befe2c739303b9a4c066/README.md#supported-versions-of-the-codeql-action)
